@@ -26,7 +26,7 @@ void Scene::setActiveScene(Scene* scene)
 	}
 
 	Scene::activeScene = scene;
-	scene->start();
+	scene->start(); 
 }
 
 Scene* Scene::getActiveScene()

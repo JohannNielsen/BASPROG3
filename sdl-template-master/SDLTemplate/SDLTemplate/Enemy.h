@@ -18,10 +18,21 @@ public:
     void draw();
     void SetPlayerTarget(Player* player);
     void setPosition(int x, int y);
+    void deathAnimation();
+    void deathAnimationSound();
+
+    int getPositionX();
+    int getPositionY();
+
+    int getWidth();
+    int getHeight();
 
 private:
     SDL_Texture* texture;
     Mix_Chunk* sound;
+    SDL_Texture* deathTexture;
+    Mix_Chunk* deathSound;
+
     Player* playerTarget;
     int x;
     int y;
@@ -34,6 +45,12 @@ private:
     float currentReloadTime;
     float directionChangeTime;
     float currentDirectionChangeTime;
+    float deathAnimationFrames;
+
+    float soundTimer;
+    float soundResetTime;
     std::vector<Bullet*> bullets;
+
+    bool isAlive;
 };
 
