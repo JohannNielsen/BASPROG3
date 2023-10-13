@@ -13,8 +13,10 @@ Player::~Player()
 
 void Player::start()
 {
+	//load texture
 	texture = loadTexture("gfx/player.png");
 
+	//initialize value
 	x = 100;
 	y = 100;
 	width = 0;
@@ -23,6 +25,7 @@ void Player::start()
 	reloadTime = 8;
 	currentReloadTime = 0;
 
+	//query the texture to set our width and height
 	SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 
 	sound = SoundManager::loadSound("sound/334227__jradcoolness__laser.ogg");
@@ -66,7 +69,6 @@ void Player::update()
 		Bullet* bullet = new Bullet(x + width, y - 2 +height / 2, 1, 0, 10);
 		bullets.push_back(bullet);
 		getScene() -> addGameObject(bullet);
-		bullet->start();
 
 		//after firing, reset our reload timer
 		currentReloadTime = reloadTime;
@@ -83,12 +85,10 @@ void Player::update()
 		Bullet* bullet1 = new Bullet(x, y , 1, 0, 10);
 		bullets.push_back(bullet1);
 		getScene()->addGameObject(bullet1);
-		bullet1->start();
 
 		Bullet* bullet2 = new Bullet(x, y + width, 1, 0, 10);
 		bullets.push_back(bullet2);
 		getScene()->addGameObject(bullet2);
-		bullet2->start();
 
 		//after firing, reset our reload timer
 		currentReloadTime = reloadTime;
@@ -122,4 +122,14 @@ void Player::update()
 void Player::draw()
 {
 	blit(texture, x, y);
+}
+
+int Player::getPositionX()
+{
+	return x;
+}
+
+int Player::getPositionY()
+{
+	return y;
 }
