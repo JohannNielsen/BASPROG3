@@ -1,66 +1,52 @@
 #include "Player.h"
 #include "Scene.h"
 
+
+
 Player::~Player()
 {
-	//memory manage our bullets. Delete all bullets on player death
 	for (int i = 0; i < bullets.size(); i++)
 	{
 		delete bullets[i];
 	}
+
 	bullets.clear();
 }
 
 void Player::start()
 {
-	//load texture
 	texture = loadTexture("gfx/player.png");
-	deathTexture = loadTexture("gfx/explosion.png");
 
-	//initialize value
-	x = 100;
-	y = 100;
+	x = SCREEN_WIDTH / 2;
+	y = SCREEN_HEIGHT / 2 + 200;
 	width = 0;
 	height = 0;
-	speed = 2;
+	speed = 5;
 	reloadTime = 8;
 	currentReloadTime = 0;
 	isAlive = true;
 
-	soundTimer = 1;
-	soundResetTime = 0;
-
-	deathAnimationFrames = 0;
-
-	//query the texture to set our width and height
 	SDL_QueryTexture(texture, NULL, NULL, &width, &height);
 
 	sound = SoundManager::loadSound("sound/334227__jradcoolness__laser.ogg");
-	deathSound = SoundManager::loadSound("sound/245372__quaker540__hq-explosion.ogg");
-
 }
 
 void Player::update()
 {
-	//memory manage our bullets. when they go off screen, delete them
+	int directionX = 0;
+	int directionY = -1;
 	for (int i = 0; i < bullets.size(); i++)
 	{
-		if (bullets[i]->getPositionX() > SCREEN_WIDTH)
+		if (bullets[i]->getPositionY() < 0)
 		{
-			//Cache the variable so we can delete it later
-			// we cant delete it after erasing from the vector (leaked pointer)
 			Bullet* bulletToErase = bullets[i];
 			bullets.erase(bullets.begin() + i);
 			delete bulletToErase;
 
-			//we cant mutate (change) or vector while looping inside it
-			//this might crash on the next loop iteration
-
-			//to counter that, we only delete one bullet per frame
-			//we can also avoid lag this way
 			break;
 		}
 	}
+
 
 	if (!isAlive) return;
 
@@ -68,85 +54,90 @@ void Player::update()
 	{
 		y -= speed;
 	}
-	if (app.keyboard[SDL_SCANCODE_A])
-	{
-		x -= speed;
-	}
 	if (app.keyboard[SDL_SCANCODE_S])
 	{
 		y += speed;
+	}
+	if (app.keyboard[SDL_SCANCODE_A])
+	{
+		x -= speed;
 	}
 	if (app.keyboard[SDL_SCANCODE_D])
 	{
 		x += speed;
 	}
 
-	if (app.keyboard[SDL_SCANCODE_LSHIFT])
-	{
-		speed = 5;
-	}
-	if (app.keyboard[SDL_SCANCODE_BACKSPACE])
-	{
-		speed = 2;
-	}
-
-	//decrement the players reload timer
 	if (currentReloadTime > 0)
+	{
 		currentReloadTime--;
-
-	if (app.keyboard[SDL_SCANCODE_F] && currentReloadTime == 0)
-	{
-		SoundManager::playSound(sound);
-		Bullet* bullet = new Bullet(x + width, y - 2 +height / 2, 1, 0, 10, Side::PLAYER_SIDE);
-		bullets.push_back(bullet);
-		getScene() -> addGameObject(bullet);
-
-		//after firing, reset our reload timer
-		currentReloadTime = reloadTime;
 	}
 
-	if (app.keyboard[SDL_SCANCODE_G] && currentReloadTime == 0)
+	if (app.keyboard[SDL_SCANCODE_F] && currentReloadTime <= 0)
 	{
-		int originalReloadTime = reloadTime;
-
-		reloadTime = 16;
-
 		SoundManager::playSound(sound);
 
-		Bullet* bullet1 = new Bullet(x, y , 1, 0, 10, Side::PLAYER_SIDE);
-		bullets.push_back(bullet1);
-		getScene()->addGameObject(bullet1);
+		createBullet();
 
-		Bullet* bullet2 = new Bullet(x, y + width, 1, 0, 10, Side::PLAYER_SIDE);
-		bullets.push_back(bullet2);
-		getScene()->addGameObject(bullet2);
-
-		//after firing, reset our reload timer
 		currentReloadTime = reloadTime;
-
-		reloadTime = originalReloadTime;
-		
 	}
-	
 
 	
 }
 
 void Player::draw()
 {
-	if (!isAlive)
-	{
+	if (!isAlive) return;
 
-		if (deathAnimationFrames == 0)
-		{
-			blit(deathTexture, x, y);
-			deathAnimationFrames = 2;
-
-		}	
-		return;
-	}
-	blit(texture, x, y);
+	blitRotate(texture, x, y, 270);
 	
+}
+
+void Player::createBullet()
+{
+	Bullet* bullet = new Bullet(x - 12 + width / 2, y, 0, -1, 10, Side::PLAYER_SIDE);
+	Bullet* bullet2 = new Bullet(x - 12 + width / 2, y, 0.25, -1, 10, Side::PLAYER_SIDE);
+	Bullet* bullet3 = new Bullet(x - 12 + width / 2, y, -0.25, -1, 10, Side::PLAYER_SIDE);
+	Bullet* bullet4 = new Bullet(x - 12 + width / 2, y, 0.50, -1, 10, Side::PLAYER_SIDE);
+	Bullet* bullet5 = new Bullet(x - 12 + width / 2, y, -0.50, -1, 10, Side::PLAYER_SIDE);
+
+	bullets.push_back(bullet);
+	bullets.push_back(bullet2);
+	bullets.push_back(bullet3);
+	bullets.push_back(bullet4);
+	bullets.push_back(bullet5);
+
+
+	if (PowerUpLevel == 0)
+	{
+		getScene()->addGameObject(bullet);
+	}
+	else if (PowerUpLevel == 1)
+	{
+		getScene()->addGameObject(bullet2);
+		getScene()->addGameObject(bullet3);
+
+	}
+	else if (PowerUpLevel == 2)
+	{
+		getScene()->addGameObject(bullet);
+		getScene()->addGameObject(bullet2);
+		getScene()->addGameObject(bullet3);
+	}
+	else if (PowerUpLevel == 3)
+	{
+		getScene()->addGameObject(bullet2);
+		getScene()->addGameObject(bullet3);
+		getScene()->addGameObject(bullet4);
+		getScene()->addGameObject(bullet5);
+	}
+	else
+	{
+		getScene()->addGameObject(bullet);
+		getScene()->addGameObject(bullet2);
+		getScene()->addGameObject(bullet3);
+		getScene()->addGameObject(bullet4);
+		getScene()->addGameObject(bullet5);
+	}
 }
 
 int Player::getPositionX()
@@ -176,14 +167,10 @@ bool Player::getIsAlive()
 
 void Player::doDeath()
 {
-	if (isAlive) 
-	{
-		isAlive = false;
+	isAlive = false;
+}
 
-		if (soundResetTime == 0) 
-		{
-			SoundManager::playSound(deathSound);
-			soundTimer = 1;
-		}
-	}
+void Player::settempPowerUpLevel(int level)
+{
+	PowerUpLevel = level;
 }

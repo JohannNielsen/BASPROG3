@@ -6,7 +6,7 @@ void Background::start()
 
 	x = 0;
 	y = 0;
-	width = 1280;
+	width = 1136;
 	height = 720;
 
 	SDL_QueryTexture(bgTexture, NULL, NULL, &width, &height);

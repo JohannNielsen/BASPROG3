@@ -1,39 +1,33 @@
 #include "GameScene.h"
 
+
+
 GameScene::GameScene()
 {
 	// Register and add game objects on constructor
-	background = new Background();
-	this->addGameObject(background);
-	
 	player = new Player();
 	this->addGameObject(player);
 
 	points = 0;
+	powerUpCount = 0;
 }
 
 GameScene::~GameScene()
 {
 	delete player;
-	delete background;
 }
- 
+
 void GameScene::start()
 {
-	bool isAlive = true;
-
 	Scene::start();
 	// Initialize any scene logic here
 	initFonts();
-	
+
 	currentSpawnTimer = 300;
-	spawnTime = 300; // spawn time of 5 seconds =  300 /60 fps
+	spawnTime = 300;
 
-	for (int i = 0; i < 3; i++)
-	{
-		spawn();
-	}
-
+	currentPowerUpTimer = 300;
+	PowerUpTimer = 300;
 
 }
 
@@ -45,8 +39,9 @@ void GameScene::draw()
 
 	if (player->getIsAlive() == false)
 	{
-		drawText(SCREEN_WIDTH / 2, 600, 255, 255, 255, TEXT_CENTER, "GAME OVER!");
+		drawText(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 255, 255, 255, TEXT_CENTER, "GAME OVER!");
 	}
+
 }
 
 void GameScene::update()
@@ -54,39 +49,38 @@ void GameScene::update()
 	Scene::update();
 
 	doSpawnLogic();
-
-	//check for collision
 	doCollisionLogic();
+
+	createPowerUps();
+	deleteUnseenObjects();
 }
+
 
 void GameScene::doSpawnLogic()
 {
 	if (currentSpawnTimer > 0)
-	{
 		currentSpawnTimer--;
-	}
 
-	if (currentSpawnTimer <= 0)
+	if (currentSpawnTimer == 0)
 	{
 		for (int i = 0; i < 3; i++)
 		{
 			spawn();
+			currentSpawnTimer = spawnTime;
 		}
-		currentSpawnTimer = spawnTime;
 	}
 }
 
 void GameScene::doCollisionLogic()
 {
+
 	for (int i = 0; i < objects.size(); i++)
 	{
-		//cast to bullet
-		Bullet* bullet = dynamic_cast<Bullet*>(objects[i]);
+		Bullet* bullet = dynamic_cast<Bullet*> (objects[i]);
+		PowerUp* powerUps = dynamic_cast<PowerUp*> (objects[i]);
 
-		//check if the cast was successful (i.e. objects[i] is a bullet)
 		if (bullet != NULL)
 		{
-			//if the bullet is from the enemy side
 			if (bullet->getSide() == Side::ENEMY_SIDE)
 			{
 				int collision = checkCollision(
@@ -100,7 +94,6 @@ void GameScene::doCollisionLogic()
 					break;
 				}
 			}
-			//if the bullet is from the Player side
 			else if (bullet->getSide() == Side::PLAYER_SIDE)
 			{
 				for (int i = 0; i < spawnedEnemies.size(); i++)
@@ -111,22 +104,31 @@ void GameScene::doCollisionLogic()
 						currentEnemy->getPositionX(), currentEnemy->getPositionY(), currentEnemy->getWidth(), currentEnemy->getHeight(),
 						bullet->getPositionX(), bullet->getPositionY(), bullet->getWidth(), bullet->getHeight()
 					);
-
 					if (collision == 1)
 					{
-						/*std::cout << "Enemy has been hit!" << std::endl;
-						break;*/
-						
 						despawnEnemy(currentEnemy);
-						bool isAlive = false;
-						
-						//VERY IMPORTANT: only despawn one at a time
-						// otherwise we might crash due to looping while deleting
 
-						//increment points
-						points++;
+						points += 100;
 						break;
 					}
+				}
+			}
+		}
+		if (powerUps != NULL)
+		{
+			for (int i = 0; i < createdPowerUps.size(); i++)
+			{
+				PowerUp* currentPowerUp = createdPowerUps[i];
+
+				int collision = checkCollision(
+					player->getPositionX(), player->getPositionY(), player->getWidth(), player->getHeight(),
+					currentPowerUp->getPositionX(), currentPowerUp->getPositionY(), currentPowerUp->getWidth(), currentPowerUp->getHeight()
+				);
+				if (collision == 1)
+				{
+					powerUpCount++;
+					player->settempPowerUpLevel(powerUpCount);
+					deleteClaimedPowerUps(currentPowerUp);
 				}
 			}
 		}
@@ -137,35 +139,90 @@ void GameScene::spawn()
 {
 	Enemy* enemy = new Enemy();
 	this->addGameObject(enemy);
-	enemy->SetPlayerTarget(player);
+	enemy->setPlayerTarget(player);
 
-	enemy->setPosition(1280, 300 + (rand() % 300));
+	enemy->setPosition(SCREEN_WIDTH / 2 + (rand() % 200), -100);
 	spawnedEnemies.push_back(enemy);
-	
+
+	currentSpawnTimer = spawnTime;
+
 }
 
 void GameScene::despawnEnemy(Enemy* enemy)
 {
 	int index = -1;
-
 	for (int i = 0; i < spawnedEnemies.size(); i++)
 	{
-		//if the pointer matches
 		if (enemy == spawnedEnemies[i])
 		{
 			index = i;
-			enemy->deathAnimation();
-			enemy->deathAnimationSound();
-			
 			break;
 		}
 	}
-
-	//if any match is found
 	if (index != -1)
 	{
 		spawnedEnemies.erase(spawnedEnemies.begin() + index);
 		delete enemy;
+	}
+}
 
+void GameScene::spawnPowerUp()
+{
+	powerUp = new PowerUp(rand() % 719 + 1, -100, 0, 1, 2);
+	this->addGameObject(powerUp);
+	createdPowerUps.push_back(powerUp);
+}
+
+void GameScene::deleteUnseenObjects()
+{
+	for (int i = 0; i < createdPowerUps.size(); i++)
+	{
+		if (createdPowerUps[i]->getPositionY() > SCREEN_HEIGHT)
+		{
+			PowerUp* powerUpsToDelete = createdPowerUps[i];
+			createdPowerUps.erase(createdPowerUps.begin() + i);
+			delete powerUpsToDelete;
+			break;
+		}
+	}
+	for (int i = 0; i < spawnedEnemies.size(); i++)
+	{
+		if (spawnedEnemies[i]->getPositionY() > SCREEN_HEIGHT)
+		{
+			Enemy* enemiesToDelete = spawnedEnemies[i];
+			spawnedEnemies.erase(spawnedEnemies.begin() + i);
+			delete enemiesToDelete;
+			break;
+		}
+	}
+}
+
+void GameScene::deleteClaimedPowerUps(PowerUp* powerUp)
+{
+	int index = -1;
+	for (int i = 0; i < createdPowerUps.size(); i++)
+	{
+		if (powerUp == createdPowerUps[i])
+		{
+			index = i;
+			break;
+		}
+	}
+	if (index != -1)
+	{
+		createdPowerUps.erase(createdPowerUps.begin() + index);
+		delete powerUp;
+	}
+}
+
+void GameScene::createPowerUps()
+{
+	if (currentPowerUpTimer > 0)
+		currentPowerUpTimer--;
+
+	if (currentPowerUpTimer == 0)
+	{
+		spawnPowerUp();
+		currentPowerUpTimer = spawnTime;
 	}
 }

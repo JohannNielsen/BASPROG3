@@ -28,4 +28,3 @@ private:
 	bool hasStarted;
 	static Scene* activeScene;
 };
-

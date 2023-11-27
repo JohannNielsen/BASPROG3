@@ -5,26 +5,31 @@
 
 enum class Side
 {
-	PLAYER_SIDE, ENEMY_SIDE
+	PLAYER_SIDE,ENEMY_SIDE,
 };
 
-class Bullet: public GameObject
+class Bullet :
+	public GameObject
 {
 public:
 	Bullet(float positionX, float positionY, float directionX, float directionY, float speed, Side side);
+
 	void start();
 	void update();
 	void draw();
 
-	int getPositionX();
-	int getPositionY();
-	int getWidth();
-	int getHeight();
+
+	float getPositionX();
+	float getPositionY();
+	float getWidth();
+	float getHeight();
 	Side getSide();
 
 private:
+
 	SDL_Texture* texture;
 	Side side;
+
 	int x;
 	int y;
 	int width;
@@ -32,6 +37,4 @@ private:
 	int speed;
 	float directionX;
 	float directionY;
-
 };
-

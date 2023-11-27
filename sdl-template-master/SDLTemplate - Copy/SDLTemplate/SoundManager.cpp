@@ -7,12 +7,12 @@ SoundManager::SoundManager()
 
 SoundManager::~SoundManager()
 {
-	
+
 }
 
 SoundManager* SoundManager::getInstance()
 {
-	static SoundManager *soundManager = new SoundManager();
+	static SoundManager* soundManager = new SoundManager();
 	return soundManager;
 }
 
@@ -78,7 +78,5 @@ Mix_Chunk* SoundManager::getLoadedSound(const char* filename)
 		if (loadedSounds[i].fileName == filename)
 			return loadedSounds[i].sound;
 	}
-
 	return NULL;
 }
-

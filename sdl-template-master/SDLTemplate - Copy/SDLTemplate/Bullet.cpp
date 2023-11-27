@@ -1,6 +1,5 @@
 #include "Bullet.h"
 
-
 Bullet::Bullet(float positionX, float positionY, float directionX, float directionY, float speed, Side side)
 {
 	this->x = positionX;
@@ -9,10 +8,12 @@ Bullet::Bullet(float positionX, float positionY, float directionX, float directi
 	this->directionY = directionY;
 	this->speed = speed;
 	this->side = side;
+
 }
 
 void Bullet::start()
 {
+
 	width = 0;
 	height = 0;
 
@@ -36,25 +37,26 @@ void Bullet::update()
 
 void Bullet::draw()
 {
-	blit(texture, x, y);
+	blitRotate(texture, x, y, 270);
 }
 
-int Bullet::getPositionX()
+
+float Bullet::getPositionX()
 {
 	return x;
 }
 
-int Bullet::getPositionY()
+float Bullet::getPositionY()
 {
 	return y;
 }
 
-int Bullet::getWidth()
+float Bullet::getWidth()
 {
 	return width;
 }
 
-int Bullet::getHeight()
+float Bullet::getHeight()
 {
 	return height;
 }

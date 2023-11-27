@@ -6,41 +6,39 @@
 #include "Bullet.h"
 #include <vector>
 
-class Player : public GameObject
+
+class Player :
+	public GameObject
 {
 public:
-    ~Player();
-    void start();
-    void update();
-    void draw();
+	~Player();
 
-    int getPositionX();
-    int getPositionY();
+	void start();
+	void update();
+	void draw();
 
-    int getWidth();
-    int  getHeight();
+	void createBullet();
+	int getPositionX();
+	int getPositionY();
+	int getWidth();
+	int getHeight();
+	bool getIsAlive();
+	void doDeath();
+	void settempPowerUpLevel(int level);
 
-    bool getIsAlive();
-    void doDeath();
 private:
-    SDL_Texture* texture;
-    Mix_Chunk* sound;
-    SDL_Texture* deathTexture;
-    Mix_Chunk* deathSound;
-    int x;
-    int y;
-    int width;
-    int height;
-    int speed;
-    float reloadTime;
-    float currentReloadTime;
+	SDL_Texture* texture;
+	Mix_Chunk* sound;
+	int x;
+	int y;
+	int width;
+	int height;
+	int speed;
+	float reloadTime;
+	float currentReloadTime;
+	int PowerUpLevel;
 
-    float soundTimer;
-    float soundResetTime;
+	std::vector<Bullet*> bullets;
 
-    float deathAnimationFrames;
-    std::vector<Bullet*> bullets;
-    
-    bool isAlive;
+	bool isAlive;
 };
-
